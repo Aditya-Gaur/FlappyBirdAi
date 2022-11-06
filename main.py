@@ -3,6 +3,7 @@ import sys
 from os import path
 import time
 import random
+pygame.font.init()
 
 WIDTH = 400
 HEIGHT = 500
@@ -20,7 +21,9 @@ dir_path = path.dirname(file_path)  # full path of the directory
 bg_jpg = path.join(dir_path, 'resources/download.png')  # absolute background image path
 agent_jpg = path.join(dir_path, 'resources/bird.png')
 pipe_jpg = path.join(dir_path, 'resources/pipe.png')
-# retro_font = path.join(dir_path, 'retro.ttf')  # absolute font path
+retro_font = path.join(dir_path, 'resources/retro.ttf')  # absolute font path
+
+score = -1
 
 
 def move_y_axis(agent, switch=0):
@@ -54,6 +57,8 @@ class Pipe:
         self.pg2 = pygame.transform.rotate(self.pg, 180)
         self.pg2 = pygame.transform.scale(self.pg2, (PIPE_WIDTH, self.height_inverse))
         self.pg1 = pygame.transform.scale(self.pg, (PIPE_WIDTH, self.height))
+        global score
+        score += 1
 
     def show(self):
         pygame.draw.rect(self.win, (50,205,50), self.rect)
@@ -85,7 +90,6 @@ def collision_detection(agent_rect, pp1, pp2):
 
     return False
 
-
 def game_window():
     """Game window"""
     while True:
@@ -97,6 +101,7 @@ def game_window():
         ag = pygame.image.load(agent_jpg)
         ag = pygame.transform.scale(ag, (AGENT_RADIUS*2.5, AGENT_RADIUS*2))
         pg = pygame.image.load(pipe_jpg)
+        font = pygame.font.Font(retro_font, 30)
 
         agent = (WIDTH/2, HEIGHT/2) # agent center
         user_click = False
@@ -123,6 +128,9 @@ def game_window():
 
             win.blit(bg, (0, 0)) # TODO impliment moving img effect as x axis moves
             win.blit(ag, agent_Rect)
+
+            label = font.render(f"Score : {score}", 1, (255,165,0))
+            win.blit(label, (0, 0))
       
             pp.manage_pipe()
             pp2.manage_pipe()
