@@ -1,7 +1,6 @@
 import pygame
 import sys
 from os import path
-import time
 import random
 import neat
 pygame.font.init()
@@ -107,7 +106,8 @@ def collision_detection(agent_rect, pp1, pp2):
 
 def game_window(genomes, config):
     """Game window"""
-    
+    global score
+    score = -1
     run = True
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Flappy bird")
@@ -134,14 +134,17 @@ def game_window(genomes, config):
         ge.append(g)
 
     while run and len(agents) > 0:
+        pygame.time.Clock().tick(30)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             
         for x,agent in enumerate(agents):
-            output = nets[x].activate((abs(agent.y), abs(agent.y - pipe_cur.rect[1]), abs(agent.y - pipe_cur.rect_inverse[1])))
+            output = nets[x].activate((agent.y, agent.y - pipe_cur.rect[1], agent.y - pipe_cur.rect_inverse[1]))
             if output[0] > 0.5:
                 agent.move_y_axis(switch="flap")
+                for g in ge:
+                    g.fitness += 0.1
 
         win.blit(bg, (0, 0)) # impliment moving img effect as x axis moves
         for agent in agents: 
@@ -149,10 +152,6 @@ def game_window(genomes, config):
 
         label = font.render(f"Score : {score}", 1, (255,165,0))
         win.blit(label, (0, 0))
-    
-        ge = pp.manage_pipe(gef=[1,ge])
-        ge = pp2.manage_pipe(gef=[0,ge])
-        pygame.display.update()
 
         pipe_cur = pp
         if len(agents) > 0 and agents[0].x > (pipe_cur.rect[0] + pipe_cur.width):
@@ -160,12 +159,16 @@ def game_window(genomes, config):
 
         for x, agent in enumerate(agents):
             if collision_detection(agent.rect, [pp.rect, pp.rect_inverse], [pp2.rect, pp2.rect_inverse]):
-                ge[x].fitness -= 1 # encourage not hittin pipes
+                ge[x].fitness -= 2 # encourage not hittin pipes
                 agents.pop(x)
                 nets.pop(x)
                 ge.pop(x)
 
-        time.sleep(0.1)
+        ge = pp.manage_pipe(gef=[1,ge])
+        ge = pp2.manage_pipe(gef=[0,ge])
+        pygame.display.update()
+
+    #    time.sleep(0.1)
 
 def runner(config):
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config)
@@ -177,7 +180,7 @@ def runner(config):
     popul.add_reporter(stats)
     #p.add_reporter(neat.Checkpointer(5))
 
-    winner = popul.run(game_window, 10) # 50 to> 1
+    winner = popul.run(game_window, 50) # 50 to> 1
 
 if __name__ == '__main__':
     print("Neat")
