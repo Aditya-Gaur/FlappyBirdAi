@@ -1,2 +1,2 @@
 ## Flappy Bird
-Implementation of neat algorithm to play flappy bird (live) (ongoing)
+Implementation of neat algorithm to play flappy bird 
